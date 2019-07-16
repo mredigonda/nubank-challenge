@@ -13,7 +13,7 @@
 
 (s/defschema Board
   [[{:type (s/enum :ROBOT :DINOSAUR :EMPTY)
-    :id s/Int}]])
+     :id s/Int}]])
 
 (def app
   (api
@@ -26,18 +26,6 @@
 
     (context "/api" []
       :tags ["api"]
-
-      (GET "/plus" []
-        :return {:result Long}
-        :query-params [x :- Long, y :- Long]
-        :summary "adds two numbers together"
-        (ok {:result (+ x y)}))
-
-      (POST "/echo" []
-        :return Pizza
-        :body [pizza Pizza]
-        :summary "echoes a Pizza"
-        (ok pizza))
 
       (POST "/simulations" []
         :return {:result Long}
@@ -63,12 +51,12 @@
         :query-params [action :- String]
         :return {:result String}
         :summary "Makes a robot do an action"
-        (ok {:result (str "fuck: " action)}))
+        (ok {:result "arrghh"}))
+        ;~ (service/handle-create-simulation))
       
       (GET "/simulations/:sid" []
         :path-params [sid :- Long]
         :return {:result Board}
         :summary "Displays the state of a simulation space"
         (service/handle-get-simulation sid)))))
-        ;~ (ok {:result '("..R.." "R.D.." "R...." "....." "..DD.")})))))
 

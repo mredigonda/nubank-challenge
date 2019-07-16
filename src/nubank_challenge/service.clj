@@ -30,14 +30,17 @@
             newboard (assoc-in board [(dec x) (dec y)] {:type "DINOSAUR" :id -1})]
             (recur (rest dinosaurs) newboard))))
 
-(defn- place-robots [robots board]
-  (if (empty? robots)
-      board
-      (let [robot    (first robots)
-            x        (:x robot)
-            y        (:y robot)
-            newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :id -1})]
-            (recur (rest robots) newboard))))
+(defn- place-robots
+  ([robots board]
+    (place-robots robots board 1))
+  ([robots board id]
+    (if (empty? robots)
+        board
+        (let [robot    (first robots)
+              x        (:x robot)
+              y        (:y robot)
+              newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :id id})]
+              (recur (rest robots) newboard (inc id))))))
 
 (defn handle-create-simulation []
   (swap! simulations create-simulation)
@@ -81,7 +84,6 @@
 (defn handle-get-simulation [sid]
   (if (and (>= sid 1)
            (<= sid (count @simulations)))
-      ;~ (ok {:result ["puto"]})
       (let [board (into [] (repeat 50 (into [] (repeat 50 {:type "EMPTY" :id -1}))))
             robots (get-in @simulations [(dec sid) :robots])
             dinosaurs (get-in @simulations [(dec sid) :dinosaurs])]
