@@ -14,8 +14,12 @@
   (conj prev {:robots [] :dinosaurs []}))
 
 (defn- create-robot [sid robot prev]
-  (let [idx        (dec sid)]
+  (let [idx (dec sid)]
     (update-in prev [idx :robots] (fn [robots] (conj robots robot)))))
+
+(defn- create-dinosaur [sid dinosaur prev]
+  (let [idx (dec sid)]
+    (update-in prev [idx :dinosaurs] (fn [dinosaurs] (conj dinosaurs dinosaur)))))
 
 (defn handle-create-simulation []
   (swap! simulations create-simulation)
@@ -35,8 +39,23 @@
           y (:y robot)
           robots (:robots simulation)
           dinosaurs (:dinosaurs simulation)]
-      (if (occupied? sid x y)
+      (if (occupied? sid x y) ; FIXME: Concurrency problem.
         (forbidden "There is another entity in this position")
         (do (swap! simulations (partial create-robot sid robot))
             (ok {:result (count (:robots (nth @simulations (dec sid))))}))))
     (bad-request "Invalid parameters")))
+
+(defn handle-create-dinosaur [sid dinosaur]
+  (if (and (>= sid 1)
+           (<= sid (count @simulations))
+           (>= (:x dinosaur) 1)
+           (<= (:x dinosaur) 50)
+           (>= (:y dinosaur) 1)
+           (<= (:y dinosaur) 50))
+      (let [x (:x dinosaur)
+            y (:y dinosaur)]
+           (if (occupied? sid x y)
+               (forbidden "There is another entity in this position")
+               (do (swap! simulations (partial create-dinosaur sid dinosaur))
+                   (ok {:result "OK"}))))
+      (bad-request "Invalid parameters")))
