@@ -21,9 +21,23 @@
   (let [idx (dec sid)]
     (update-in prev [idx :dinosaurs] (fn [dinosaurs] (conj dinosaurs dinosaur)))))
 
-(defn- place-dinosaurs [dinosaurs board] board)
+(defn- place-dinosaurs [dinosaurs board]
+  (if (empty? dinosaurs)
+      board
+      (let [dinosaur (first dinosaurs)
+            x        (:x dinosaur)
+            y        (:y dinosaur)
+            newboard (assoc-in board [(dec x) (dec y)] {:type "DINOSAUR" :id -1})]
+            (recur (rest dinosaurs) newboard))))
 
-(defn- place-robots [robots board] board)
+(defn- place-robots [robots board]
+  (if (empty? robots)
+      board
+      (let [robot    (first robots)
+            x        (:x robot)
+            y        (:y robot)
+            newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :id -1})]
+            (recur (rest robots) newboard))))
 
 (defn handle-create-simulation []
   (swap! simulations create-simulation)

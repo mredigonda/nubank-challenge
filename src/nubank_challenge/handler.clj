@@ -12,7 +12,7 @@
             :city s/Str}})
 
 (s/defschema Board
-  [[{:type (s/enum :ROBOT :DINASAUR :EMPTY)
+  [[{:type (s/enum :ROBOT :DINOSAUR :EMPTY)
     :id s/Int}]])
 
 (def app
