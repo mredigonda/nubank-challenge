@@ -13,7 +13,8 @@
 
 (s/defschema Board
   [[{:type (s/enum :ROBOT :DINOSAUR :EMPTY)
-     :id s/Int}]])
+     (s/optional-key :dir) s/Int
+     (s/optional-key :id) s/Int}]])
 
 (def app
   (api

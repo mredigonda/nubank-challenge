@@ -27,7 +27,7 @@
       (let [dinosaur (first dinosaurs)
             x        (:x dinosaur)
             y        (:y dinosaur)
-            newboard (assoc-in board [(dec x) (dec y)] {:type "DINOSAUR" :id -1})]
+            newboard (assoc-in board [(dec x) (dec y)] {:type "DINOSAUR"})]
             (recur (rest dinosaurs) newboard))))
 
 (defn- place-robots
@@ -39,7 +39,8 @@
         (let [robot    (first robots)
               x        (:x robot)
               y        (:y robot)
-              newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :id id})]
+              dir      (:dir robot)
+              newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :dir dir :id id})]
               (recur (rest robots) newboard (inc id))))))
 
 (defn- robot-turn [sid rid turn-val prev]
@@ -88,7 +89,7 @@
 (defn handle-get-simulation [sid]
   (if (and (>= sid 1)
            (<= sid (count @simulations)))
-      (let [board (into [] (repeat 50 (into [] (repeat 50 {:type "EMPTY" :id -1}))))
+      (let [board (into [] (repeat 50 (into [] (repeat 50 {:type "EMPTY"}))))
             robots (get-in @simulations [(dec sid) :robots])
             dinosaurs (get-in @simulations [(dec sid) :dinosaurs])]
            (ok {:result (place-dinosaurs dinosaurs (place-robots robots board))}))
@@ -99,8 +100,10 @@
       (let [simulation (nth @simulations (dec sid))]
            (if (and (>= rid 1) (<= rid (count (:robots simulation))))
                (case action
-                 "turn-right" (swap! simulations (partial robot-turn sid rid 1))
-                 "turn-left" (swap! simulations (partial robot-turn sid rid -1)))
+                 "turn-right" (do (swap! simulations (partial robot-turn sid rid 1))
+                                  (ok {:result "SUCESS"}))
+                 "turn-left" (do (swap! simulations (partial robot-turn sid rid -1))
+                                 (ok {:result "SUCESS"})))
                  ;~ "move-forward" ()
                  ;~ "move-backwards" ()
                  ;~ "attack" (robot-attack sid rid))
