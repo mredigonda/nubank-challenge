@@ -51,8 +51,7 @@
         :query-params [action :- String]
         :return {:result String}
         :summary "Makes a robot do an action"
-        (ok {:result "arrghh"}))
-        ;~ (service/handle-create-simulation))
+        (service/handle-robot-action sid rid action))
       
       (GET "/simulations/:sid" []
         :path-params [sid :- Long]

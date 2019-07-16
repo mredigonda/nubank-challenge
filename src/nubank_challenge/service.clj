@@ -42,6 +42,10 @@
               newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :id id})]
               (recur (rest robots) newboard (inc id))))))
 
+(defn- robot-turn [sid rid turn-val prev]
+  (update-in prev [(dec sid) :robots (dec rid) :dir]
+             (fn [dir] (mod (+ dir turn-val) 4))))
+
 (defn handle-create-simulation []
   (swap! simulations create-simulation)
   (ok {:result (count @simulations)}))
@@ -89,3 +93,16 @@
             dinosaurs (get-in @simulations [(dec sid) :dinosaurs])]
            (ok {:result (place-dinosaurs dinosaurs (place-robots robots board))}))
       (bad-request "Invalid parameter")))
+
+(defn handle-robot-action [sid rid action]
+  (if (and (>= sid 1) (<= sid (count @simulations)))
+      (let [simulation (nth @simulations (dec sid))]
+           (if (and (>= rid 1) (<= rid (count (:robots simulation))))
+               (case action
+                 "turn-right" (swap! simulations (partial robot-turn sid rid 1))
+                 "turn-left" (swap! simulations (partial robot-turn sid rid -1)))
+                 ;~ "move-forward" ()
+                 ;~ "move-backwards" ()
+                 ;~ "attack" (robot-attack sid rid))
+               (bad-request "Invalid parameters")))
+      (bad-request "Invalid parameters")))
