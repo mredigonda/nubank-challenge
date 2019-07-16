@@ -21,6 +21,10 @@
   (let [idx (dec sid)]
     (update-in prev [idx :dinosaurs] (fn [dinosaurs] (conj dinosaurs dinosaur)))))
 
+(defn- place-dinosaurs [dinosaurs board] board)
+
+(defn- place-robots [robots board] board)
+
 (defn handle-create-simulation []
   (swap! simulations create-simulation)
   (ok {:result (count @simulations)}))
@@ -59,3 +63,13 @@
                (do (swap! simulations (partial create-dinosaur sid dinosaur))
                    (ok {:result "OK"}))))
       (bad-request "Invalid parameters")))
+
+(defn handle-get-simulation [sid]
+  (if (and (>= sid 1)
+           (<= sid (count @simulations)))
+      ;~ (ok {:result ["puto"]})
+      (let [board (into [] (repeat 50 (into [] (repeat 50 {:type "EMPTY" :id -1}))))
+            robots (get-in @simulations [(dec sid) :robots])
+            dinosaurs (get-in @simulations [(dec sid) :dinosaurs])]
+           (ok {:result (place-dinosaurs dinosaurs (place-robots robots board))}))
+      (bad-request "Invalid parameter")))

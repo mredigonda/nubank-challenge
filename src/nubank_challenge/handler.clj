@@ -11,6 +11,10 @@
    :origin {:country (s/enum :FI :PO)
             :city s/Str}})
 
+(s/defschema Board
+  [[{:type (s/enum :ROBOT :DINASAUR :EMPTY)
+    :id s/Int}]])
+
 (def app
   (api
     {:swagger
@@ -63,7 +67,8 @@
       
       (GET "/simulations/:sid" []
         :path-params [sid :- Long]
-        :return {:result [String]}
+        :return {:result Board}
         :summary "Displays the state of a simulation space"
-        (ok {:result '("..R.." "R.D.." "R...." "....." "..DD.")})))))
+        (service/handle-get-simulation sid)))))
+        ;~ (ok {:result '("..R.." "R.D.." "R...." "....." "..DD.")})))))
 
