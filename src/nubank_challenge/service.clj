@@ -3,14 +3,18 @@
 
 (defonce simulations (atom []))
 
-(defn create-simulation [prev]
+(defn- occupied? [sid x y]
+  (let [simulation (nth @simulations (dec sid))
+        robots (:robots simulation)
+        dinosaurs (:dinosaurs simulation)]
+    (or (some (fn [cand] (and (== (:x cand) x) (== (:y cand) y))) robots)
+        (some (fn [cand] (and (== (:x cand) x) (== (:y cand) y))) dinosaurs))))
+
+(defn- create-simulation [prev]
   (conj prev {:robots [] :dinosaurs []}))
 
-(defn create-robot [sid robot prev]
+(defn- create-robot [sid robot prev]
   (let [idx        (dec sid)]
-    ;~ (do (println sid) (println robot) (println prev)
-        ;~ (println (update-in prev [idx :robots] (fn [robots] (conj robots robot))))
-        ;~ prev)))
     (update-in prev [idx :robots] (fn [robots] (conj robots robot)))))
 
 (defn handle-create-simulation []
@@ -31,8 +35,7 @@
           y (:y robot)
           robots (:robots simulation)
           dinosaurs (:dinosaurs simulation)]
-      (if (or (some (fn [cand] (and (== (:x cand) (:x robot)) (== (:y cand) (:y robot)))) robots) 
-              (some (fn [cand] (and (== (:x cand) (:x robot)) (== (:y cand) (:y robot)))) dinosaurs))
+      (if (occupied? sid x y)
         (forbidden "There is another entity in this position")
         (do (swap! simulations (partial create-robot sid robot))
             (ok {:result (count (:robots (nth @simulations (dec sid))))}))))
