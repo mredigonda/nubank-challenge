@@ -53,14 +53,14 @@
       (POST "/simulations/:sid/dinosaurs" []
         :path-params [sid :- Long]
         :body [dinosaur {:x Long, :y Long}]
-        :return {:result String}
+        :return {:result Dinosaur}
         :summary "Creates a new dinosaur"
         (service/handle-create-dinosaur (dec sid) dinosaur))
       
       (PUT "/simulations/:sid/robots/:rid" []
         :path-params [sid :- Long, rid :- Long]
         :query-params [action :- String]
-        :return {:result String}
+        :return {:result Robot}
         :summary "Makes a robot do an action"
         (service/handle-robot-action (dec sid) (dec rid) action))
       
