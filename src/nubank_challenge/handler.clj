@@ -32,27 +32,27 @@
         :body [robot {:x Long, :y Long, :dir Long}]
         :return {:result Long}
         :summary "Creates a new robot"
-        (service/handle-create-robot sid robot))
+        (service/handle-create-robot (dec sid) robot))
         
       (POST "/simulations/:sid/dinosaurs" []
         :path-params [sid :- Long]
         :body [dinosaur {:x Long, :y Long}]
         :return {:result String}
         :summary "Creates a new dinosaur"
-        (service/handle-create-dinosaur sid dinosaur))
+        (service/handle-create-dinosaur (dec sid) dinosaur))
       
       (PUT "/simulations/:sid/robots/:rid" []
         :path-params [sid :- Long, rid :- Long]
         :query-params [action :- String]
         :return {:result String}
         :summary "Makes a robot do an action"
-        (service/handle-robot-action sid rid action))
+        (service/handle-robot-action (dec sid) (dec rid) action))
       
       (GET "/simulations/:sid" []
         :path-params [sid :- Long]
         :return {:result Board}
         :summary "Displays the state of a simulation space"
-        (service/handle-get-simulation sid)))))
+        (service/handle-get-simulation (dec sid))))))
 
 (def app
   (routes
