@@ -1,0 +1,57 @@
+<html>
+    <head>
+        <title>NuBank Challenge Client</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body onload="refresh()">
+        <div class="wrapper">
+            <h1>NuBank Challenge Client</h1>
+            <p>This is a client application to manually test and interact with the backend tasked for the NuBank challenge.</p>
+            <label>Simulation</label>
+            <input id="simulation" value="1">
+            <button onclick="createNewSimulation()">Create new simulation</button>
+            <button onclick="refresh()">Refresh</button>
+            <table id="grid"></table>
+        </div>
+        <script>
+            var root = "http://localhost:3000/api/simulations";
+
+            function createCell(obj) {
+                var cell = document.createElement("th");
+                cell.innerHTML = obj.type == "EMPTY" ? " " : "x";
+                //~ cell.addEventListener("click", refresh());
+                cell.className = "div-table-cell";
+                return cell;
+            }
+
+            function refresh() {
+                var sid = document.getElementById("simulation").value;
+                fetch(root + "/" + sid)
+                    .then((res) => res.json())
+                    .then((data) => {
+                        var grid = JSON.parse(JSON.stringify(data)).result;
+                        var container = document.getElementById("grid");
+                        container.innerHTML = "";
+                        container.className = "div-table";
+                        for (var i = 0; i < grid.length; ++i) {
+                            var row = document.createElement("tr");
+                            row.className = "div-table-row";
+                            for (var j = 0; j < grid[i].length; ++j){
+                                var cell = createCell(grid[i][j]);
+                                row.appendChild(cell);
+                            }
+                            container.appendChild(row);
+                        }
+                    })
+            }
+
+            function createNewSimulation() {
+                fetch(root, {method: "POST"})
+                    .then((res) => res.json())
+                    .then((data) => {
+                        console.log(data);
+                    })
+            }
+        </script>
+    </body>
+</html>

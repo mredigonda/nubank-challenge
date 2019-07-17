@@ -2,21 +2,15 @@
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
-            [nubank-challenge.service :as service]))
-
-(s/defschema Pizza
-  {:name s/Str
-   (s/optional-key :description) s/Str
-   :size (s/enum :L :M :S)
-   :origin {:country (s/enum :FI :PO)
-            :city s/Str}})
+            [nubank-challenge.service :as service]
+            [compojure.route :as route]))
 
 (s/defschema Board
   [[{:type (s/enum :ROBOT :DINOSAUR :EMPTY)
      (s/optional-key :dir) s/Int
      (s/optional-key :id) s/Int}]])
 
-(def app
+(defn my-api []
   (api
     {:swagger
      {:ui "/"
@@ -24,7 +18,7 @@
       :data {:info {:title "Nubank-challenge"
                     :description "Compojure Api example"}
              :tags [{:name "api", :description "some apis"}]}}}
-
+  
     (context "/api" []
       :tags ["api"]
 
@@ -60,3 +54,8 @@
         :summary "Displays the state of a simulation space"
         (service/handle-get-simulation sid)))))
 
+(def app
+  (routes
+    (my-api)
+    (route/resources "/client")
+    (route/not-found "404 Not Found")))

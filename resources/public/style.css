@@ -1,0 +1,29 @@
+body {
+    padding: 0;
+    margin: 0;
+    background-color: #aaa;
+}
+.wrapper {
+    width: 960px;
+    margin: 0 auto;
+    background-color: #fff;
+    box-shadow: 5px 5px 5px rgba(68,68,68,0.6);
+    text-align: center;
+    padding: 5px;
+}
+
+.div-table {
+    font-size: 12px;
+    border-collapse: collapse;
+    margin: 0 auto;
+    table-layout: fixed;
+    min-height: auto;
+}
+.div-table-row {
+}
+.div-table-cell {
+    width: 15px;
+    height: 15px;
+    border: 1px solid #222;
+    overflow: hidden;
+}
