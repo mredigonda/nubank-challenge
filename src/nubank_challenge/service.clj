@@ -25,7 +25,7 @@
     (update-in prev [idx :dinosaurs] (fn [dinosaurs] (conj dinosaurs dinosaur)))))
 
 (defn- place-dinosaurs [dinosaurs board]
-  (if (empty? dinosaurs)
+  (if (empty? dinosaurs) ; ACCORDING TO NUBANK STYLE GUIDE: CHANGE EMPTY? BY SEQ
       board
       (let [dinosaur (first dinosaurs)
             x        (:x dinosaur)
@@ -37,7 +37,7 @@
   ([robots board]
     (place-robots robots board 1))
   ([robots board id]
-    (if (empty? robots)
+    (if (empty? robots) ; ACCORDING TO NUBANK STYLE GUIDE: CHANGE EMPTY? BY SEQ
         board
         (let [robot    (first robots)
               x        (:x robot)
@@ -86,12 +86,9 @@
 (defn handle-create-robot [sid robot]
   (if (and (>= sid 1)
            (<= sid (count @simulations))
-           (>= (:x robot) 1)
-           (<= (:x robot) 50)
-           (>= (:y robot) 1)
-           (<= (:y robot) 50)
-           (>= (:dir robot) 0)
-           (<= (:dir robot) 3))
+           (<= 1 (:x robot) 50)
+           (<= 1 (:y robot) 50)
+           (<= 0 (:dir robot) 3))
     (let [simulation (nth @simulations (dec sid))
           x (:x robot)
           y (:y robot)
@@ -106,10 +103,8 @@
 (defn handle-create-dinosaur [sid dinosaur]
   (if (and (>= sid 1)
            (<= sid (count @simulations))
-           (>= (:x dinosaur) 1)
-           (<= (:x dinosaur) 50)
-           (>= (:y dinosaur) 1)
-           (<= (:y dinosaur) 50))
+           (<= 1 (:x dinosaur) 50)
+           (<= 1 (:y dinosaur) 50))
       (let [x (:x dinosaur)
             y (:y dinosaur)]
            (if (occupied? sid x y)
@@ -121,7 +116,7 @@
 (defn handle-get-simulation [sid]
   (if (and (>= sid 1)
            (<= sid (count @simulations)))
-      (let [board (into [] (repeat 50 (into [] (repeat 50 {:type "EMPTY"}))))
+      (let [board (vec (repeat 50 (vec (repeat 50 {:type "EMPTY"}))))
             robots (get-in @simulations [(dec sid) :robots])
             dinosaurs (get-in @simulations [(dec sid) :dinosaurs])]
            (ok {:result (place-dinosaurs dinosaurs (place-robots robots board))}))
