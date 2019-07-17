@@ -5,6 +5,22 @@
             [nubank-challenge.service :as service]
             [compojure.route :as route]))
 
+(s/defschema Robot
+  {:x s/Int
+   :y s/Int
+   :dir s/Int
+   (s/optional-key :id) s/Int})
+
+(s/defschema Dinosaur
+  {:x s/Int
+   :y s/Int
+   (s/optional-key :id) s/Int})
+
+(s/defschema Simulation
+  {:data {:robots [Robot]
+          :dinosaurs [Dinosaur]}
+   (s/optional-key :id) s/Int})
+
 (s/defschema Board
   [[{:type (s/enum :ROBOT :DINOSAUR :EMPTY)
      (s/optional-key :dir) s/Int
@@ -23,7 +39,7 @@
       :tags ["api"]
 
       (POST "/simulations" []
-        :return {:result Long}
+        :return {:result Simulation}
         :summary "Creates a new simulation space"
         (service/handle-create-simulation))
       

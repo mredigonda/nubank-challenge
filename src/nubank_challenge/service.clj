@@ -77,7 +77,7 @@
 
 (defn handle-create-simulation []
   (swap! simulations create-simulation)
-  (ok {:result (count @simulations)}))
+  (ok {:result {:id (count @simulations) :data (last @simulations)}}))
     
 (defn handle-create-robot [sid robot]
   (if (and (<= 0 sid (dec (count @simulations)))
