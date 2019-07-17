@@ -46,7 +46,7 @@
       (POST "/simulations/:sid/robots" []
         :path-params [sid :- Long]
         :body [robot {:x Long, :y Long, :dir Long}]
-        :return {:result Long}
+        :return {:result Robot}
         :summary "Creates a new robot"
         (service/handle-create-robot (dec sid) robot))
         
