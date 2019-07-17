@@ -3,8 +3,6 @@
 
 (defonce simulations (atom []))
 
-(defn- abs [n] (max n (- n))) ; It doesn't work with Long/MIN_VALUE because of zero :'(
-
 (defn- valid? [sid x y]
   (let [simulation (nth @simulations sid)
         robots (:robots simulation)
@@ -57,14 +55,6 @@
   (update-in prev [sid :robots rid :dir]
              (fn [dir] (mod (+ dir turn-val) 4))))
 
-(defn- robot-attack [sid rid prev]
-  (let [robot (get-in prev [sid :robots rid])]
-        (update-in prev
-                   [sid :dinosaurs]
-                   (partial filter (fn [dinosaur] (let [dx (abs (- (:x robot) (:x dinosaur)))
-                                                        dy (abs (- (:y robot) (:y dinosaur)))]
-                                                        (> (+ dx dy) 1)))))))
-
 (defn- robot-move-forward [sid rid prev]
   (update-in prev
              [sid :robots rid]
@@ -78,6 +68,13 @@
                  (into robot (move-dir {:x (:x robot) :y (:y robot)}
                                        (mod (+ (:dir robot) 2) 4))))))
 
+(defn- robot-attack [sid rid prev]
+  (let [robot (get-in prev [sid :robots rid])]
+        (update-in prev
+                   [sid :dinosaurs]
+                   (partial filter (fn [dinosaur] (let [dx (Math/abs (- (:x robot) (:x dinosaur)))
+                                                        dy (Math/abs (- (:y robot) (:y dinosaur)))]
+                                                        (> (+ dx dy) 1)))))))
 
 (defn handle-create-simulation []
   (swap! simulations create-simulation)
@@ -111,14 +108,6 @@
                    (ok {:result (last (get-in @simulations [sid :dinosaurs]))}))))
       (bad-request "Invalid parameters")))
 
-(defn handle-get-simulation [sid]
-  (if (<= 0 sid (dec (count @simulations)))
-      (let [board (vec (repeat 50 (vec (repeat 50 {:type "EMPTY"}))))
-            robots (get-in @simulations [sid :robots])
-            dinosaurs (get-in @simulations [sid :dinosaurs])]
-           (ok {:result (place-dinosaurs dinosaurs (place-robots robots board))}))
-      (bad-request "Invalid parameter")))
-
 (defn handle-robot-action [sid rid action]
   (if (<= 0 sid (dec (count @simulations)))
       (let [simulation (nth @simulations sid)
@@ -150,3 +139,11 @@
                               (ok {:result (get-in @simulations [sid :robots rid])})))
                (bad-request "Invalid parameters")))
       (bad-request "Invalid parameters")))
+
+(defn handle-get-simulation [sid]
+  (if (<= 0 sid (dec (count @simulations)))
+      (let [board (vec (repeat 50 (vec (repeat 50 {:type "EMPTY"}))))
+            robots (get-in @simulations [sid :robots])
+            dinosaurs (get-in @simulations [sid :dinosaurs])]
+           (ok {:result (place-dinosaurs dinosaurs (place-robots robots board))}))
+      (bad-request "Invalid parameter")))
