@@ -3,12 +3,15 @@
 
 (defonce simulations (atom []))
 
+(defn- abs [n] (max n (- n))) ; It doesn't work with Long/MIN_VALUE because of zero :'(
+
 (defn- occupied? [sid x y]
   (let [simulation (nth @simulations (dec sid))
         robots (:robots simulation)
         dinosaurs (:dinosaurs simulation)]
     (or (some (fn [cand] (and (== (:x cand) x) (== (:y cand) y))) robots)
-        (some (fn [cand] (and (== (:x cand) x) (== (:y cand) y))) dinosaurs))))
+        (some (fn [cand] (and (== (:x cand) x) (== (:y cand) y))) dinosaurs)
+        (< x 1) (> x 50) (< y 1) (> y 50))))
 
 (defn- create-simulation [prev]
   (conj prev {:robots [] :dinosaurs []}))
@@ -43,9 +46,38 @@
               newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :dir dir :id id})]
               (recur (rest robots) newboard (inc id))))))
 
+(defn- move-dir [{x :x y :y} dir]
+  (let [dx (nth [-1 0 1 0] dir)
+       dy (nth [0 1 0 -1] dir)]
+       {:x (+ x dx) :y (+ y dy)}))
+
 (defn- robot-turn [sid rid turn-val prev]
   (update-in prev [(dec sid) :robots (dec rid) :dir]
              (fn [dir] (mod (+ dir turn-val) 4))))
+
+(defn- robot-attack [sid rid prev]
+  (let [sidx (dec sid)
+        ridx (dec rid)
+        robot (get-in prev [sidx :robots ridx])]
+        (update-in prev
+                   [sidx :dinosaurs]
+                   (partial filter (fn [dinosaur] (let [dx (abs (- (:x robot) (:x dinosaur)))
+                                                        dy (abs (- (:y robot) (:y dinosaur)))]
+                                                        (> (+ dx dy) 1)))))))
+
+(defn- robot-move-forward [sid rid prev]
+  (update-in prev
+             [(dec sid) :robots (dec rid)]
+             (fn [robot]
+                 (into robot (move-dir {:x (:x robot) :y (:y robot)} (:dir robot))))))
+
+(defn- robot-move-backwards [sid rid prev]
+  (update-in prev
+             [(dec sid) :robots (dec rid)]
+             (fn [robot]
+                 (into robot (move-dir {:x (:x robot) :y (:y robot)}
+                                        (mod (+ (:dir robot) 2) 4))))))
+
 
 (defn handle-create-simulation []
   (swap! simulations create-simulation)
@@ -97,15 +129,32 @@
 
 (defn handle-robot-action [sid rid action]
   (if (and (>= sid 1) (<= sid (count @simulations)))
-      (let [simulation (nth @simulations (dec sid))]
+      (let [simulation (nth @simulations (dec sid))
+            robot (get-in @simulations [(dec sid) :robots (dec rid)]) ; USE DESTRUCTURING!
+            x (:x robot)
+            y (:y robot)
+            dir (:dir robot)]
            (if (and (>= rid 1) (<= rid (count (:robots simulation))))
                (case action
                  "turn-right" (do (swap! simulations (partial robot-turn sid rid 1))
-                                  (ok {:result "SUCESS"}))
+                                  (ok {:result "SUCCESS"}))
                  "turn-left" (do (swap! simulations (partial robot-turn sid rid -1))
-                                 (ok {:result "SUCESS"})))
-                 ;~ "move-forward" ()
-                 ;~ "move-backwards" ()
-                 ;~ "attack" (robot-attack sid rid))
+                                 (ok {:result "SUCCESS"}))
+                 "move-forward" (let [newpos (move-dir {:x x :y y} dir)
+                                      nx (:x newpos)
+                                      ny (:y newpos)]
+                                     (if (occupied? sid nx ny)
+                                         (forbidden "There is an entity in that position")
+                                         (do (swap! simulations (partial robot-move-forward sid rid))
+                                             (ok {:result "SUCCESS"}))))
+                 "move-backwards" (let [newpos (move-dir {:x x :y y} dir)
+                                      nx (:x newpos)
+                                      ny (:y newpos)]
+                                     (if (occupied? sid nx ny)
+                                         (forbidden "There is an entity in that position")
+                                         (do (swap! simulations (partial robot-move-backwards sid rid))
+                                             (ok {:result "SUCCESS"}))))
+                 "attack" (do (swap! simulations (partial robot-attack sid rid))
+                              (ok {:result "SUCCESS"})))
                (bad-request "Invalid parameters")))
       (bad-request "Invalid parameters")))
