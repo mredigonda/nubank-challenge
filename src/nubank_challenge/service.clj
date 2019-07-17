@@ -135,14 +135,14 @@
                  "move-forward" (let [newpos (move-dir {:x x :y y} dir)
                                       nx (:x newpos)
                                       ny (:y newpos)]
-                                     (if (valid? sid nx ny) ; FIX CONCURRENCY
+                                      (if (valid? sid nx ny) ; FIX CONCURRENCY
                                          (forbidden "There is an entity in that position")
                                          (do (swap! simulations (partial robot-move-forward sid rid))
                                              (ok {:result (get-in @simulations [sid :robots rid])}))))
-                 "move-backwards" (let [newpos (move-dir {:x x :y y} dir)
-                                      nx (:x newpos)
-                                      ny (:y newpos)]
-                                     (if (valid? sid nx ny) ; FIX CONCURRENCY
+                 "move-backwards" (let [newpos (move-dir {:x x :y y} (mod (+ dir 2) 4))
+                                       nx (:x newpos)
+                                       ny (:y newpos)]
+                                       (if (valid? sid nx ny) ; FIX CONCURRENCY
                                          (forbidden "There is an entity in that position")
                                          (do (swap! simulations (partial robot-move-backwards sid rid))
                                              (ok {:result (get-in @simulations [sid :robots rid])}))))
