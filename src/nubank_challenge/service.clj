@@ -36,27 +36,25 @@
              [sid :dinosaurs]
              #(conj % (assoc dinosaur :id (inc (count %))))))
 
-(defn- place-dinosaurs [dinosaurs board]
+(defn- place-dinosaurs
   "Given a list of dinosaurs and a board, it recursively inserts the
-  dinosaurs into the required positions."
+  dinosaurs into the required positions of the board."
+  [dinosaurs board]
   (if (empty? dinosaurs)
-      board
-      (let [[{:keys [x y] :as dinosaur}] dinosaurs
-            newboard (assoc-in board [(dec x) (dec y)] {:type "DINOSAUR"})]
-        (recur (rest dinosaurs) newboard))))
+    board
+    (let [[{:keys [x y] :as dinosaur}] dinosaurs
+          newboard (assoc-in board [(dec x) (dec y)] {:type "DINOSAUR"})]
+      (recur (rest dinosaurs) newboard))))
 
 (defn- place-robots
-  ([robots board]
-    (place-robots robots board 1))
-  ([robots board id]
-    (if (empty? robots)
-        board
-        (let [robot    (first robots)
-              x        (:x robot)
-              y        (:y robot)
-              dir      (:dir robot)
-              newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :dir dir :id id})]
-              (recur (rest robots) newboard (inc id))))))
+  "Given a list of robots and a board, it recursively inserts the robots
+  into the required positions of the board."
+  [robots board]
+  (if (empty? robots)
+    board
+    (let [[{:keys [x y dir id] :as robot}] robots
+          newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :dir dir :id id})]
+      (recur (rest robots) newboard))))
 
 (defn- move-dir [{x :x y :y} dir]
   (let [dx (nth [-1 0 1 0] dir)
