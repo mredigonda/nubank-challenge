@@ -20,16 +20,21 @@
   "Given a simulation id, a robot and the previous global state, it
   returns a new state in which the robot is added to the simulation.
   Note: this doesn't check if there is an entity occupying that
-  position, or if the robot values are valid."
+  position, nor if the robot values are valid."
   [sid robot prev]
   (update-in prev
              [sid :robots]
              #(conj % (assoc robot :id (inc (count %))))))
 
-(defn- create-dinosaur [sid dinosaur prev]
+(defn- create-dinosaur
+  "Given a simulation id, a dinosaur and the previous global state, it
+  returns a new state in which the dinosaur is added to the simulation.
+  Note: this doesn't check if there is an entity occupying that
+  position, nor if the dinosaur values are valid."
+  [sid dinosaur prev]
   (update-in prev
              [sid :dinosaurs]
-             (fn [dinosaurs] (conj dinosaurs (assoc dinosaur :id (inc (count dinosaurs)))))))
+             #(conj % (assoc dinosaur :id (inc (count %))))))
 
 (defn- place-dinosaurs [dinosaurs board]
   (if (empty? dinosaurs)
