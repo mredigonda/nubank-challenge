@@ -37,13 +37,13 @@
              #(conj % (assoc dinosaur :id (inc (count %))))))
 
 (defn- place-dinosaurs [dinosaurs board]
+  "Given a list of dinosaurs and a board, it recursively inserts the
+  dinosaurs into the required positions."
   (if (empty? dinosaurs)
       board
-      (let [dinosaur (first dinosaurs)
-            x        (:x dinosaur)
-            y        (:y dinosaur)
+      (let [[{:keys [x y] :as dinosaur}] dinosaurs
             newboard (assoc-in board [(dec x) (dec y)] {:type "DINOSAUR"})]
-            (recur (rest dinosaurs) newboard))))
+        (recur (rest dinosaurs) newboard))))
 
 (defn- place-robots
   ([robots board]
