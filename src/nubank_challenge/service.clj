@@ -3,13 +3,15 @@
 
 (defonce simulations (atom []))
 
-(defn- valid? [sid x y]
-  (let [simulation (nth @simulations sid)
-        robots (:robots simulation)
-        dinosaurs (:dinosaurs simulation)]
-    (or (some (fn [cand] (and (== (:x cand) x) (== (:y cand) y))) robots)
-        (some (fn [cand] (and (== (:x cand) x) (== (:y cand) y))) dinosaurs)
-        (< x 1) (> x 50) (< y 1) (> y 50))))
+(defn- valid?
+  "Given a simulation id and two 1-indexed coordinates, it determines
+  if that cell is valid, that is, if it is inside the board and if it
+  is not occupied."
+  [sid cx cy]
+  (let [{:keys [robots dinosaurs]} (nth @simulations sid)]
+    (or (some (fn [{:keys [x y]}] (and (== cx x) (== cy y))) robots)
+        (some (fn [{:keys [x y]}] (and (== cx x) (== cy y))) dinosaurs)
+        (< cx 1) (> cx 50) (< cy 1) (> cy 50))))
 
 (defn- create-simulation [prev]
   (conj prev {:robots [] :dinosaurs []}))
