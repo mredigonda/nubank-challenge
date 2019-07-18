@@ -92,8 +92,8 @@
           dinosaurs (:dinosaurs simulation)]
       (if (valid? sid x y) ; FIXME: Concurrency problem.
         (forbidden "There is another entity in this position")
-        (do (swap! simulations (partial create-robot sid robot))
-            (ok {:result (last (get-in @simulations [sid :robots]))}))))
+        (let [new-state (swap! simulations (partial create-robot sid robot))]
+             (ok {:result (last (get-in new-state [sid :robots]))}))))
     (bad-request "Invalid parameters")))
 
 (defn handle-create-dinosaur [sid dinosaur]
@@ -104,8 +104,8 @@
             y (:y dinosaur)]
            (if (valid? sid x y)
                (forbidden "There is another entity in this position")
-               (do (swap! simulations (partial create-dinosaur sid dinosaur))
-                   (ok {:result (last (get-in @simulations [sid :dinosaurs]))}))))
+               (let [new-state (swap! simulations (partial create-dinosaur sid dinosaur))]
+                    (ok {:result (last (get-in new-state [sid :dinosaurs]))}))))
       (bad-request "Invalid parameters")))
 
 (defn handle-robot-action [sid rid action]
