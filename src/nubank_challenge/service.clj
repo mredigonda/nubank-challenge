@@ -17,15 +17,15 @@
 (defn- create-robot [sid robot prev]
   (update-in prev
              [sid :robots]
-             (fn [robots] (conj robots (assoc robot :id (count robots))))))
+             (fn [robots] (conj robots (assoc robot :id (inc (count robots)))))))
 
 (defn- create-dinosaur [sid dinosaur prev]
   (update-in prev
              [sid :dinosaurs]
-             (fn [dinosaurs] (conj dinosaurs (assoc dinosaur :id (count dinosaurs))))))
+             (fn [dinosaurs] (conj dinosaurs (assoc dinosaur :id (inc (count dinosaurs)))))))
 
 (defn- place-dinosaurs [dinosaurs board]
-  (if (empty? dinosaurs) ; ACCORDING TO NUBANK STYLE GUIDE: CHANGE EMPTY? BY SEQ
+  (if (empty? dinosaurs)
       board
       (let [dinosaur (first dinosaurs)
             x        (:x dinosaur)
@@ -37,7 +37,7 @@
   ([robots board]
     (place-robots robots board 1))
   ([robots board id]
-    (if (empty? robots) ; ACCORDING TO NUBANK STYLE GUIDE: CHANGE EMPTY? BY SEQ
+    (if (empty? robots)
         board
         (let [robot    (first robots)
               x        (:x robot)
