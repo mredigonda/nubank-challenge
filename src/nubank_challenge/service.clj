@@ -16,10 +16,15 @@
 (defn- create-simulation [prev]
   (conj prev {:robots [] :dinosaurs []}))
 
-(defn- create-robot [sid robot prev]
+(defn- create-robot
+  "Given a simulation id, a robot and the previous global state, it
+  returns a new state in which the robot is added to the simulation.
+  Note: this doesn't check if there is an entity occupying that
+  position, or if the robot values are valid."
+  [sid robot prev]
   (update-in prev
              [sid :robots]
-             (fn [robots] (conj robots (assoc robot :id (inc (count robots)))))))
+             #(conj % (assoc robot :id (inc (count %))))))
 
 (defn- create-dinosaur [sid dinosaur prev]
   (update-in prev
