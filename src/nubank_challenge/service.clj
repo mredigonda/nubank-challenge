@@ -151,13 +151,29 @@
       (forbidden "Invalid position"))
     (bad-request "Invalid parameters")))
 
-(defn- handle-robot-action-turn-right
-  "Given a simulation id and a robot id, it handles the turn left
-  action of that robot, effectively changing the global state and
-  returning the corresponding HTTP response."
-  [sid rid]
-  (let [new-state (swap! simulations (partial robot-turn sid rid 1))]
+(defn- handle-robot-action-turn
+  "Given a simulation id, a robot id, and a turning value, it handles
+  the turn action of that robot, effectively changing the global state
+  and returning the corresponding HTTP response."
+  [sid rid turn-val]
+  (let [new-state (swap! simulations
+                         (partial robot-turn sid rid turn-val))]
     (ok {:result (get-in new-state [sid :robots rid])})))
+
+(defn- handle-robot-action-move
+  "Given a simulation id, a robot id, and a boolean, it handles the
+  move action of that robot, going forward if the boolean is true and
+  backwards otherwise, effectively changing the global state and
+  returning the corresponding HTTP response."
+  [sid rid forward?]
+  (let [{:keys [x y dir]} (get-in @simulations [sid :robots rid])
+        correct-dir       (if forward? dir (mod (+ dir 2) 4))
+        {nx :x ny :y}     (move-dir x y correct-dir)
+        robot-move        (if forward? robot-move-forward robot-move-backwards)]
+    (if (valid? sid nx ny) ; FIX CONCURRENCY
+      (do (swap! simulations (partial robot-move sid rid))
+          (ok {:result (get-in @simulations [sid :robots rid])}))
+      (forbidden "There is an entity in that position"))))
 
 (defn handle-robot-action
   "Given a simulation id, a robot id, and the string representing an
@@ -170,25 +186,10 @@
                                               [sid :robots rid])]
       (if (<= 0 rid (dec (count (:robots simulation))))
         (case action
-          "turn-right" (handle-robot-action-turn-right sid rid)
-          "turn-left" (do (swap! simulations
-                                 (partial robot-turn sid rid -1))
-                          (ok {:result (get-in @simulations
-                                               [sid :robots rid])}))
-          "move-forward" (let [{nx :x ny :y} (move-dir x y dir)]
-                           (if (valid? sid nx ny) ; FIX CONCURRENCY
-                              (do (swap! simulations
-                                         (partial robot-move-forward sid rid))
-                                  (ok {:result (get-in @simulations
-                                                       [sid :robots rid])}))
-                              (forbidden "There is an entity in that position")))
-          "move-backwards" (let [{nx :x ny :y} (move-dir x y (mod (+ dir 2) 4))]
-                             (if (valid? sid nx ny) ; FIX CONCURRENCY
-                                 (do (swap! simulations
-                                            (partial robot-move-backwards sid rid))
-                                     (ok {:result (get-in @simulations
-                                                          [sid :robots rid])}))
-                                 (forbidden "There is an entity in that position")))
+          "turn-right" (handle-robot-action-turn sid rid 1)
+          "turn-left" (handle-robot-action-turn sid rid -1)
+          "move-forward" (handle-robot-action-move sid rid true)
+          "move-backwards" (handle-robot-action-move sid rid false)
           "attack" (do (swap! simulations (partial robot-attack sid rid))
                        (ok {:result (get-in @simulations
                                             [sid :robots rid])})))
