@@ -151,17 +151,26 @@
       (forbidden "Invalid position"))
     (bad-request "Invalid parameters")))
 
-(defn handle-robot-action [sid rid action]
+(defn- handle-robot-action-turn-right
+  "Given a simulation id and a robot id, it handles the turn left
+  action of that robot, effectively changing the global state and
+  returning the corresponding HTTP response."
+  [sid rid]
+  (let [new-state (swap! simulations (partial robot-turn sid rid 1))]
+    (ok {:result (get-in new-state [sid :robots rid])})))
+
+(defn handle-robot-action
+  "Given a simulation id, a robot id, and the string representing an
+  action, it handle the realization of the action and returns the
+  expected HTTP response."
+  [sid rid action]
   (if (<= 0 sid (dec (count @simulations)))
     (let [simulation (nth @simulations sid)
           {:keys [x y dir] :as robot} (get-in @simulations
                                               [sid :robots rid])]
       (if (<= 0 rid (dec (count (:robots simulation))))
         (case action
-          "turn-right" (do (swap! simulations
-                                  (partial robot-turn sid rid 1))
-                           (ok {:result (get-in @simulations
-                                                [sid :robots rid])}))
+          "turn-right" (handle-robot-action-turn-right sid rid)
           "turn-left" (do (swap! simulations
                                  (partial robot-turn sid rid -1))
                           (ok {:result (get-in @simulations
