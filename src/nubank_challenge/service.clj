@@ -15,6 +15,7 @@
          (<= 1 cx 50) (<= 1 cy 50))))
 
 (defn- create-simulation [prev]
+  "Given the global state, it adds an empty simulation space to it."
   (conj prev {:robots [] :dinosaurs []}))
 
 (defn- create-robot
@@ -115,14 +116,16 @@
                                          (> (+ dx dy) 1)))))))
 
 (defn handle-create-simulation
-  "Handles POST request to create a simulation space."
+  "Handles POST request to create a simulation space and returns the
+  expected HTTP response."
   []
   (let [new-state (swap! simulations create-simulation)]
     (ok {:result {:id (count new-state) :data (last new-state)}})))
     
 (defn handle-create-robot
   "Given a simulation id and a robot, it handles the creation of that
-  robot in the respective simulation space."
+  robot in the respective simulation space and returns the expected HTTP
+  response."
   [sid {:keys [x y dir] :as robot}]
   (if (and (<= 0 sid (dec (count @simulations)))
            (<= 1 x 50) (<= 1 y 50) (<= 0 dir 3))
@@ -134,17 +137,19 @@
         (forbidden "Invalid position")))
     (bad-request "Invalid parameters")))
 
-(defn handle-create-dinosaur [sid dinosaur]
+(defn handle-create-dinosaur
+  "Given a simulation id and a dinosaur, it handles the creation of that
+  dinosaur in the respective simulation space and returns the expected
+  HTTP response."
+  [sid {:keys [x y] :as dinosaur}]
   (if (and (<= 0 sid (dec (count @simulations)))
-           (<= 1 (:x dinosaur) 50)
-           (<= 1 (:y dinosaur) 50))
-      (let [x (:x dinosaur)
-            y (:y dinosaur)]
-           (if (valid? sid x y)
-             (let [new-state (swap! simulations (partial create-dinosaur sid dinosaur))]
-               (ok {:result (last (get-in new-state [sid :dinosaurs]))}))
-             (forbidden "There is another entity in this position")))
-      (bad-request "Invalid parameters")))
+           (<= 1 x 50) (<= 1 y 50))
+    (if (valid? sid x y)
+      (let [new-state (swap! simulations
+                             (partial create-dinosaur sid dinosaur))]
+        (ok {:result (last (get-in new-state [sid :dinosaurs]))}))
+      (forbidden "Invalid position"))
+    (bad-request "Invalid parameters")))
 
 (defn handle-robot-action [sid rid action]
   (if (<= 0 sid (dec (count @simulations)))
@@ -178,10 +183,13 @@
                (bad-request "Invalid parameters")))
       (bad-request "Invalid parameters")))
 
-(defn handle-get-simulation [sid]
+(defn handle-get-simulation
+  "Given a simulation id it handles the GET request to obtain the
+  current state of the board, returning the expected HTTP response."
+  [sid]
   (if (<= 0 sid (dec (count @simulations)))
-      (let [board (vec (repeat 50 (vec (repeat 50 {:type "EMPTY"}))))
-            robots (get-in @simulations [sid :robots])
-            dinosaurs (get-in @simulations [sid :dinosaurs])]
-           (ok {:result (place-dinosaurs dinosaurs (place-robots robots board))}))
-      (bad-request "Invalid parameter")))
+    (let [board (vec (repeat 50 (vec (repeat 50 {:type "EMPTY"}))))
+          {:keys [robots dinosaurs]} (get @simulations sid)]
+      (ok {:result (place-dinosaurs dinosaurs
+                                    (place-robots robots board))}))
+    (bad-request "Invalid parameter")))
