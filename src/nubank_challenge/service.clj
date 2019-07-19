@@ -56,10 +56,14 @@
           newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :dir dir :id id})]
       (recur (rest robots) newboard))))
 
-(defn- move-dir [{x :x y :y} dir]
+(defn- move-dir
+  "Given x, y coordinates and a direction (where 0 is north, and it
+  goes clockwise) it moves the coordinates in that direction and it
+  returns the new position as a map."
+  [x y dir]
   (let [dx (nth [-1 0 1 0] dir)
-       dy (nth [0 1 0 -1] dir)]
-       {:x (+ x dx) :y (+ y dy)}))
+        dy (nth [0 1 0 -1] dir)]
+    {:x (+ x dx) :y (+ y dy)}))
 
 (defn- robot-turn [sid rid turn-val prev]
   (update-in prev [sid :robots rid :dir]
@@ -68,15 +72,14 @@
 (defn- robot-move-forward [sid rid prev]
   (update-in prev
              [sid :robots rid]
-             (fn [robot]
-                 (into robot (move-dir {:x (:x robot) :y (:y robot)} (:dir robot))))))
+             (fn [{:keys [x y dir] :as robot}]
+                 (into robot (move-dir x y dir)))))
 
 (defn- robot-move-backwards [sid rid prev]
   (update-in prev
              [sid :robots rid]
-             (fn [robot]
-                 (into robot (move-dir {:x (:x robot) :y (:y robot)}
-                                       (mod (+ (:dir robot) 2) 4))))))
+             (fn [{:keys [x y dir] :as robot}]
+                 (into robot (move-dir x y (mod (+ dir 2) 4))))))
 
 (defn- robot-attack [sid rid prev]
   (let [robot (get-in prev [sid :robots rid])]
@@ -131,14 +134,14 @@
                                   (ok {:result (get-in @simulations [sid :robots rid])}))
                  "turn-left" (do (swap! simulations (partial robot-turn sid rid -1))
                                  (ok {:result (get-in @simulations [sid :robots rid])}))
-                 "move-forward" (let [newpos (move-dir {:x x :y y} dir)
+                 "move-forward" (let [newpos (move-dir x y dir)
                                       nx (:x newpos)
                                       ny (:y newpos)]
                                       (if (valid? sid nx ny) ; FIX CONCURRENCY
                                          (forbidden "There is an entity in that position")
                                          (do (swap! simulations (partial robot-move-forward sid rid))
                                              (ok {:result (get-in @simulations [sid :robots rid])}))))
-                 "move-backwards" (let [newpos (move-dir {:x x :y y} (mod (+ dir 2) 4))
+                 "move-backwards" (let [newpos (move-dir x y (mod (+ dir 2) 4))
                                        nx (:x newpos)
                                        ny (:y newpos)]
                                        (if (valid? sid nx ny) ; FIX CONCURRENCY
