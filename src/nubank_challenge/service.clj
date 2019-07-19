@@ -153,35 +153,38 @@
 
 (defn handle-robot-action [sid rid action]
   (if (<= 0 sid (dec (count @simulations)))
-      (let [simulation (nth @simulations sid)
-            robot (get-in @simulations [sid :robots rid]) ; USE DESTRUCTURING!
-            x (:x robot)
-            y (:y robot)
-            dir (:dir robot)]
-           (if (<= 0 rid (dec (count (:robots simulation))))
-               (case action
-                 "turn-right" (do (swap! simulations (partial robot-turn sid rid 1))
-                                  (ok {:result (get-in @simulations [sid :robots rid])}))
-                 "turn-left" (do (swap! simulations (partial robot-turn sid rid -1))
-                                 (ok {:result (get-in @simulations [sid :robots rid])}))
-                 "move-forward" (let [newpos (move-dir x y dir)
-                                      nx (:x newpos)
-                                      ny (:y newpos)]
-                                      (if (valid? sid nx ny) ; FIX CONCURRENCY
-                                         (do (swap! simulations (partial robot-move-forward sid rid))
-                                             (ok {:result (get-in @simulations [sid :robots rid])}))
-                                         (forbidden "There is an entity in that position")))
-                 "move-backwards" (let [newpos (move-dir x y (mod (+ dir 2) 4))
-                                       nx (:x newpos)
-                                       ny (:y newpos)]
-                                       (if (valid? sid nx ny) ; FIX CONCURRENCY
-                                         (do (swap! simulations (partial robot-move-backwards sid rid))
-                                             (ok {:result (get-in @simulations [sid :robots rid])}))
-                                         (forbidden "There is an entity in that position")))
-                 "attack" (do (swap! simulations (partial robot-attack sid rid))
-                              (ok {:result (get-in @simulations [sid :robots rid])})))
-               (bad-request "Invalid parameters")))
-      (bad-request "Invalid parameters")))
+    (let [simulation (nth @simulations sid)
+          {:keys [x y dir] :as robot} (get-in @simulations
+                                              [sid :robots rid])]
+      (if (<= 0 rid (dec (count (:robots simulation))))
+        (case action
+          "turn-right" (do (swap! simulations
+                                  (partial robot-turn sid rid 1))
+                           (ok {:result (get-in @simulations
+                                                [sid :robots rid])}))
+          "turn-left" (do (swap! simulations
+                                 (partial robot-turn sid rid -1))
+                          (ok {:result (get-in @simulations
+                                               [sid :robots rid])}))
+          "move-forward" (let [{nx :x ny :y} (move-dir x y dir)]
+                           (if (valid? sid nx ny) ; FIX CONCURRENCY
+                              (do (swap! simulations
+                                         (partial robot-move-forward sid rid))
+                                  (ok {:result (get-in @simulations
+                                                       [sid :robots rid])}))
+                              (forbidden "There is an entity in that position")))
+          "move-backwards" (let [{nx :x ny :y} (move-dir x y (mod (+ dir 2) 4))]
+                             (if (valid? sid nx ny) ; FIX CONCURRENCY
+                                 (do (swap! simulations
+                                            (partial robot-move-backwards sid rid))
+                                     (ok {:result (get-in @simulations
+                                                          [sid :robots rid])}))
+                                 (forbidden "There is an entity in that position")))
+          "attack" (do (swap! simulations (partial robot-attack sid rid))
+                       (ok {:result (get-in @simulations
+                                            [sid :robots rid])})))
+        (bad-request "Invalid parameters")))
+    (bad-request "Invalid parameters")))
 
 (defn handle-get-simulation
   "Given a simulation id it handles the GET request to obtain the
