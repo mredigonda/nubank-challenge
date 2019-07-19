@@ -109,9 +109,11 @@
                                          dy (Math/abs (- ry y))]
                                          (> (+ dx dy) 1)))))))
 
-(defn handle-create-simulation []
-  (swap! simulations create-simulation)
-  (ok {:result {:id (count @simulations) :data (last @simulations)}}))
+(defn handle-create-simulation
+  "Handles POST request to create a simulation space."
+  []
+  (let [new-state (swap! simulations create-simulation)]
+    (ok {:result {:id (count new-state) :data (last new-state)}})))
     
 (defn handle-create-robot [sid robot]
   (if (and (<= 0 sid (dec (count @simulations)))
