@@ -96,13 +96,18 @@
              (fn [{:keys [x y dir] :as robot}]
                  (into robot (move-dir x y (mod (+ dir 2) 4))))))
 
-(defn- robot-attack [sid rid prev]
-  (let [robot (get-in prev [sid :robots rid])]
-        (update-in prev
-                   [sid :dinosaurs]
-                   (partial filter (fn [dinosaur] (let [dx (Math/abs (- (:x robot) (:x dinosaur)))
-                                                        dy (Math/abs (- (:y robot) (:y dinosaur)))]
-                                                        (> (+ dx dy) 1)))))))
+(defn- robot-attack
+  "Given a simulation id, a robot id, and the global state, it returns
+  the new global state after the robot's attack, which disappears all
+  dinosaurs that are adjacent to it."
+  [sid rid prev]
+  (let [{rx :x ry :y} (get-in prev [sid :robots rid])]
+    (update-in prev
+               [sid :dinosaurs]
+               (partial filter (fn [{:keys [x y]}]
+                                   (let [dx (Math/abs (- rx x))
+                                         dy (Math/abs (- ry y))]
+                                         (> (+ dx dy) 1)))))))
 
 (defn handle-create-simulation []
   (swap! simulations create-simulation)
