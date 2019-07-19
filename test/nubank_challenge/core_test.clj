@@ -97,8 +97,10 @@
           body     (parse-body (:body response))]
       (:status response) => 200
       (get-in body [:result :x]) => 50
-      (get-in body [:result :y]) => 49 ;; Tested this way because :id is not important (and it's kind of undefined)
-      (get-in body [:result :id]) => -5))
+      (get-in body [:result :y]) => 49
+      (get-in body [:result :id]) => -5)) ;; On purpose, this should fail
+                                          ;; and show that the three dinosaurs
+                                          ;; have the same id.
 
   (fact "Create new dinosaur, to the north of the robot"
     (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
@@ -106,7 +108,10 @@
           body     (parse-body (:body response))]
       (:status response) => 200
       (get-in body [:result :x]) => 49
-      (get-in body [:result :y]) => 50))
+      (get-in body [:result :y]) => 50
+      (get-in body [:result :id]) => -5)) ;; On purpose, this should fail
+                                          ;; and show that the three dinosaurs
+                                          ;; have the same id.
 
   (fact "Create new dinosaur, to the northwest of the robot"
     (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
@@ -114,7 +119,10 @@
           body     (parse-body (:body response))]
       (:status response) => 200
       (get-in body [:result :x]) => 49
-      (get-in body [:result :y]) => 49))
+      (get-in body [:result :y]) => 49
+      (get-in body [:result :id]) => -5)) ;; On purpose, this should fail
+                                          ;; and show that the three dinosaurs
+                                          ;; have the same id.
 
   (fact "Test making the robot attack, knocking out two out of three dinosaurs"
     (let [response (app (-> (mock/request :put "/api/simulations/1/robots/1?action=attack")))
