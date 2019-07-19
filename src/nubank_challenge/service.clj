@@ -65,8 +65,13 @@
         dy (nth [0 1 0 -1] dir)]
     {:x (+ x dx) :y (+ y dy)}))
 
-(defn- robot-turn [sid rid turn-val prev]
-  (update-in prev [sid :robots rid :dir]
+(defn- robot-turn
+  "Takes a simulation id, a robot id, a turning value, and the previous
+  global state, and returns a new state with the respective robot turned
+  by the turning value in clockwise direction."
+  [sid rid turn-val prev]
+  (update-in prev
+             [sid :robots rid :dir]
              (fn [dir] (mod (+ dir turn-val) 4))))
 
 (defn- robot-move-forward [sid rid prev]
