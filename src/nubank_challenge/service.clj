@@ -66,21 +66,31 @@
     {:x (+ x dx) :y (+ y dy)}))
 
 (defn- robot-turn
-  "Takes a simulation id, a robot id, a turning value, and the previous
-  global state, and returns a new state with the respective robot turned
+  "Given a simulation id, a robot id, a turning value, and the previous
+  global state, returns a new state with the respective robot turned
   by the turning value in clockwise direction."
   [sid rid turn-val prev]
   (update-in prev
              [sid :robots rid :dir]
              (fn [dir] (mod (+ dir turn-val) 4))))
 
-(defn- robot-move-forward [sid rid prev]
+(defn- robot-move-forward
+  "Given a simulation id, a robot id, and the previous global state,
+  it returns a new state with the position of the robot moved forward
+  one cell, according to its facing direction.
+  Note: this doesn't check if the new position is valid."
+  [sid rid prev]
   (update-in prev
              [sid :robots rid]
              (fn [{:keys [x y dir] :as robot}]
                  (into robot (move-dir x y dir)))))
 
-(defn- robot-move-backwards [sid rid prev]
+(defn- robot-move-backwards
+  "Given a simulation id, a robot id, and the previous global state,
+  it returns a new state with the position of the robot moved backwards
+  one cell, according to its facing direction.
+  Note: this doesn't check if the new position is valid."
+  [sid rid prev]
   (update-in prev
              [sid :robots rid]
              (fn [{:keys [x y dir] :as robot}]
