@@ -87,42 +87,42 @@
   (fact "Test you are not allowed to create a dinosaur in the same position as the already created robot"
     (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
                             (mock/json-body {:x 50 :y 50})))]
-      (:status response) => 403)))
+      (:status response) => 403))
 
   ;; These tests will fail, uncomment them at your own risk (:
 
-  ;~ (fact "Create new dinosaur, to the west of the robot"
-    ;~ (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
-                            ;~ (mock/json-body {:x 50 :y 49})))
-          ;~ body     (parse-body (:body response))]
-      ;~ (:status response) => 200
-      ;~ (get-in body [:result :x]) => 50
-      ;~ (get-in body [:result :y]) => 49)) ;; Tested this way because :id is not important (and it's kind of undefined)
-      ;~ (get-in body [:result :id]) => -5))
+  (fact "Create new dinosaur, to the west of the robot"
+    (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
+                            (mock/json-body {:x 50 :y 49})))
+          body     (parse-body (:body response))]
+      (:status response) => 200
+      (get-in body [:result :x]) => 50
+      (get-in body [:result :y]) => 49 ;; Tested this way because :id is not important (and it's kind of undefined)
+      (get-in body [:result :id]) => -5))
 
-  ;~ (fact "Create new dinosaur, to the north of the robot"
-    ;~ (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
-                            ;~ (mock/json-body {:x 49 :y 50})))
-          ;~ body     (parse-body (:body response))]
-      ;~ (:status response) => 200
-      ;~ (get-in body [:result :x]) => 49
-      ;~ (get-in body [:result :y]) => 50))
+  (fact "Create new dinosaur, to the north of the robot"
+    (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
+                            (mock/json-body {:x 49 :y 50})))
+          body     (parse-body (:body response))]
+      (:status response) => 200
+      (get-in body [:result :x]) => 49
+      (get-in body [:result :y]) => 50))
 
-  ;~ (fact "Create new dinosaur, to the northwest of the robot"
-    ;~ (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
-                            ;~ (mock/json-body {:x 49 :y 49})))
-          ;~ body     (parse-body (:body response))]
-      ;~ (:status response) => 200
-      ;~ (get-in body [:result :x]) => 49
-      ;~ (get-in body [:result :y]) => 49))
+  (fact "Create new dinosaur, to the northwest of the robot"
+    (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
+                            (mock/json-body {:x 49 :y 49})))
+          body     (parse-body (:body response))]
+      (:status response) => 200
+      (get-in body [:result :x]) => 49
+      (get-in body [:result :y]) => 49))
 
-  ;~ (fact "Test making the robot attack, knocking out two out of three dinosaurs"
-    ;~ (let [response (app (-> (mock/request :put "/api/simulations/1/robots/1?action=attack")))
-          ;~ body     (parse-body (:body response))]
-      ;~ (:status response) => 200))
-      ;~ (:result body) => {:x 50 :y 50 :dir 3 :id 1}))
+  (fact "Test making the robot attack, knocking out two out of three dinosaurs"
+    (let [response (app (-> (mock/request :put "/api/simulations/1/robots/1?action=attack")))
+          body     (parse-body (:body response))]
+      (:status response) => 200
+      (:result body) => {:x 50 :y 50 :dir 3 :id 1}))
 
-  ;~ (fact "Test that the dinosaur to the northwest survived, by attempting to create a dinosaur in that position"
-    ;~ (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
-                            ;~ (mock/json-body {:x 49 :y 49})))]
-      ;~ (:status response) => 403)))
+  (fact "Test that the dinosaur to the northwest survived, by attempting to create a dinosaur in that position"
+    (let [response (app (-> (mock/request :post "/api/simulations/1/dinosaurs")
+                            (mock/json-body {:x 49 :y 49})))]
+      (:status response) => 403)))

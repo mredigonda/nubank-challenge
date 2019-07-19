@@ -3,6 +3,8 @@
 
 (defonce simulations (atom []))
 
+(def board-sz 50)
+
 (defn- valid?
   "Given a simulation id and two 1-indexed coordinates, it determines
   if that cell is valid, that is, if it is inside the board and if it
@@ -12,7 +14,7 @@
         not-same-cell (fn [{:keys [x y]}] (or (not= cx x) (not= cy y)))]
     (and (every? not-same-cell robots)
          (every? not-same-cell dinosaurs)
-         (<= 1 cx 50) (<= 1 cy 50))))
+         (<= 1 cx board-sz) (<= 1 cy board-sz))))
 
 (defn- create-simulation [prev]
   "Given the global state, it adds an empty simulation space to it."
@@ -128,7 +130,7 @@
   response."
   [sid {:keys [x y dir] :as robot}]
   (if (and (<= 0 sid (dec (count @simulations)))
-           (<= 1 x 50) (<= 1 y 50) (<= 0 dir 3))
+           (<= 1 x board-sz) (<= 1 y board-sz) (<= 0 dir 3))
     (let [{:keys [robots dinosaurs]} (nth @simulations sid)]
       (if (valid? sid x y) ; FIXME: Concurrency problem.
         (let [new-state (swap! simulations
@@ -143,7 +145,7 @@
   HTTP response."
   [sid {:keys [x y] :as dinosaur}]
   (if (and (<= 0 sid (dec (count @simulations)))
-           (<= 1 x 50) (<= 1 y 50))
+           (<= 1 x board-sz) (<= 1 y board-sz))
     (if (valid? sid x y)
       (let [new-state (swap! simulations
                              (partial create-dinosaur sid dinosaur))]
@@ -206,7 +208,7 @@
   current state of the board, returning the expected HTTP response."
   [sid]
   (if (<= 0 sid (dec (count @simulations)))
-    (let [board (vec (repeat 50 (vec (repeat 50 {:type "EMPTY"}))))
+    (let [board (vec (repeat board-sz (vec (repeat board-sz {:type "EMPTY"}))))
           {:keys [robots dinosaurs]} (get @simulations sid)]
       (ok {:result (place-dinosaurs dinosaurs
                                     (place-robots robots board))}))

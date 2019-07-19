@@ -1,5 +1,5 @@
  (defproject nubank-challenge "0.1.0-SNAPSHOT"
-   :description "FIXME: write description"
+   :description "NuBank Coding Challenge - Robots and dinosaurs REST API."
    :dependencies [[org.clojure/clojure "1.8.0"]
                   [metosin/compojure-api "1.1.11"]]
    :ring {:handler nubank-challenge.handler/app}

@@ -31,9 +31,10 @@
     {:swagger
      {:ui "/"
       :spec "/swagger.json"
-      :data {:info {:title "Nubank-challenge"
-                    :description "Compojure Api example"}
-             :tags [{:name "api", :description "some apis"}]}}}
+      :data {:info {:title "Nubank Challenge"
+                    :description "REST API for NuBank challenge about
+                    robots and dinosaurs."}
+             :tags [{:name "API", :description ""}]}}}
   
     (context "/api" []
       :tags ["api"]
