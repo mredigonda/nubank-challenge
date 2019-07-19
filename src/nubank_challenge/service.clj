@@ -8,10 +8,11 @@
   if that cell is valid, that is, if it is inside the board and if it
   is not occupied."
   [sid cx cy]
-  (let [{:keys [robots dinosaurs]} (nth @simulations sid)]
-    (or (some (fn [{:keys [x y]}] (and (== cx x) (== cy y))) robots)
-        (some (fn [{:keys [x y]}] (and (== cx x) (== cy y))) dinosaurs)
-        (< cx 1) (> cx 50) (< cy 1) (> cy 50))))
+  (let [{:keys [robots dinosaurs]} (nth @simulations sid)
+        not-same-cell (fn [{:keys [x y]}] (or (not= cx x) (not= cy y)))]
+    (and (every? not-same-cell robots)
+         (every? not-same-cell dinosaurs)
+         (<= 1 cx 50) (<= 1 cy 50))))
 
 (defn- create-simulation [prev]
   (conj prev {:robots [] :dinosaurs []}))
@@ -43,7 +44,9 @@
   (if (empty? dinosaurs)
     board
     (let [[{:keys [x y] :as dinosaur}] dinosaurs
-          newboard (assoc-in board [(dec x) (dec y)] {:type "DINOSAUR"})]
+          newboard (assoc-in board
+                             [(dec x) (dec y)]
+                             {:type "DINOSAUR"})]
       (recur (rest dinosaurs) newboard))))
 
 (defn- place-robots
@@ -53,7 +56,9 @@
   (if (empty? robots)
     board
     (let [[{:keys [x y dir id] :as robot}] robots
-          newboard (assoc-in board [(dec x) (dec y)] {:type "ROBOT" :dir dir :id id})]
+          newboard (assoc-in board
+                             [(dec x) (dec y)]
+                             {:type "ROBOT" :dir dir :id id})]
       (recur (rest robots) newboard))))
 
 (defn- move-dir
@@ -115,20 +120,18 @@
   (let [new-state (swap! simulations create-simulation)]
     (ok {:result {:id (count new-state) :data (last new-state)}})))
     
-(defn handle-create-robot [sid robot]
+(defn handle-create-robot
+  "Given a simulation id and a robot, it handles the creation of that
+  robot in the respective simulation space."
+  [sid {:keys [x y dir] :as robot}]
   (if (and (<= 0 sid (dec (count @simulations)))
-           (<= 1 (:x robot) 50)
-           (<= 1 (:y robot) 50)
-           (<= 0 (:dir robot) 3))
-    (let [simulation (nth @simulations sid)
-          x (:x robot)
-          y (:y robot)
-          robots (:robots simulation)
-          dinosaurs (:dinosaurs simulation)]
+           (<= 1 x 50) (<= 1 y 50) (<= 0 dir 3))
+    (let [{:keys [robots dinosaurs]} (nth @simulations sid)]
       (if (valid? sid x y) ; FIXME: Concurrency problem.
-        (forbidden "There is another entity in this position")
-        (let [new-state (swap! simulations (partial create-robot sid robot))]
-             (ok {:result (last (get-in new-state [sid :robots]))}))))
+        (let [new-state (swap! simulations
+                               (partial create-robot sid robot))]
+          (ok {:result (last (get-in new-state [sid :robots]))}))
+        (forbidden "Invalid position")))
     (bad-request "Invalid parameters")))
 
 (defn handle-create-dinosaur [sid dinosaur]
@@ -138,9 +141,9 @@
       (let [x (:x dinosaur)
             y (:y dinosaur)]
            (if (valid? sid x y)
-               (forbidden "There is another entity in this position")
-               (let [new-state (swap! simulations (partial create-dinosaur sid dinosaur))]
-                    (ok {:result (last (get-in new-state [sid :dinosaurs]))}))))
+             (let [new-state (swap! simulations (partial create-dinosaur sid dinosaur))]
+               (ok {:result (last (get-in new-state [sid :dinosaurs]))}))
+             (forbidden "There is another entity in this position")))
       (bad-request "Invalid parameters")))
 
 (defn handle-robot-action [sid rid action]
@@ -160,16 +163,16 @@
                                       nx (:x newpos)
                                       ny (:y newpos)]
                                       (if (valid? sid nx ny) ; FIX CONCURRENCY
-                                         (forbidden "There is an entity in that position")
                                          (do (swap! simulations (partial robot-move-forward sid rid))
-                                             (ok {:result (get-in @simulations [sid :robots rid])}))))
+                                             (ok {:result (get-in @simulations [sid :robots rid])}))
+                                         (forbidden "There is an entity in that position")))
                  "move-backwards" (let [newpos (move-dir x y (mod (+ dir 2) 4))
                                        nx (:x newpos)
                                        ny (:y newpos)]
                                        (if (valid? sid nx ny) ; FIX CONCURRENCY
-                                         (forbidden "There is an entity in that position")
                                          (do (swap! simulations (partial robot-move-backwards sid rid))
-                                             (ok {:result (get-in @simulations [sid :robots rid])}))))
+                                             (ok {:result (get-in @simulations [sid :robots rid])}))
+                                         (forbidden "There is an entity in that position")))
                  "attack" (do (swap! simulations (partial robot-attack sid rid))
                               (ok {:result (get-in @simulations [sid :robots rid])})))
                (bad-request "Invalid parameters")))
