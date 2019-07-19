@@ -171,9 +171,18 @@
         {nx :x ny :y}     (move-dir x y correct-dir)
         robot-move        (if forward? robot-move-forward robot-move-backwards)]
     (if (valid? sid nx ny) ; FIX CONCURRENCY
-      (do (swap! simulations (partial robot-move sid rid))
-          (ok {:result (get-in @simulations [sid :robots rid])}))
+      (let [new-state (swap! simulations (partial robot-move sid rid))]
+          (ok {:result (get-in new-state [sid :robots rid])}))
       (forbidden "There is an entity in that position"))))
+
+(defn- handle-robot-action-attack
+  "Given a simulation id, and a robot id, it handles the attacking
+  action of that robot, effectively changing the state (possibly
+  reducing the number of dinosaurs), and returns the corresponding
+  HTTP response."
+  [sid rid]
+  (let [new-state (swap! simulations (partial robot-attack sid rid))]
+       (ok {:result (get-in new-state [sid :robots rid])})))
 
 (defn handle-robot-action
   "Given a simulation id, a robot id, and the string representing an
@@ -181,18 +190,14 @@
   expected HTTP response."
   [sid rid action]
   (if (<= 0 sid (dec (count @simulations)))
-    (let [simulation (nth @simulations sid)
-          {:keys [x y dir] :as robot} (get-in @simulations
-                                              [sid :robots rid])]
-      (if (<= 0 rid (dec (count (:robots simulation))))
+    (let [nrobots (count (get-in @simulations [sid :robots]))]
+      (if (<= 0 rid (dec nrobots))
         (case action
           "turn-right" (handle-robot-action-turn sid rid 1)
           "turn-left" (handle-robot-action-turn sid rid -1)
           "move-forward" (handle-robot-action-move sid rid true)
           "move-backwards" (handle-robot-action-move sid rid false)
-          "attack" (do (swap! simulations (partial robot-attack sid rid))
-                       (ok {:result (get-in @simulations
-                                            [sid :robots rid])})))
+          "attack" (handle-robot-action-attack sid rid))
         (bad-request "Invalid parameters")))
     (bad-request "Invalid parameters")))
 
